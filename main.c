@@ -153,7 +153,6 @@ int main() {
             
             for(int i = 1; i <= MAX_CONTACTS; i++){
                 if (contacts[i] != 0){
-                    printf("Here! 1");
                     fprintf(out, "%s ", contacts[i] -> data.firstName);
                     fprintf(out, "%s ", contacts[i] -> data.lastName);
                     fprintf(out, "%d\n", contacts[i] -> data.phoneNumber);
@@ -161,7 +160,6 @@ int main() {
                     ContactPtr nextContact = contacts[i] -> next;
                     
                     while (nextContact != NULL){
-                        printf("Here! 2");
                         fprintf(out, "%s ", nextContact -> data.firstName);
                         fprintf(out, "%s ", nextContact -> data.lastName);
                         fprintf(out, "%d\n", nextContact -> data.phoneNumber);
@@ -201,7 +199,6 @@ int main() {
             
             for(int i = 1; i <= MAX_CONTACTS; i++){
                 if (contacts[i] != 0){
-                    printf("index: %d\n", i);
                     printf("First Name: %s\n", contacts[i] -> data.firstName );
                     printf("Last Name: %s\n", contacts[i] -> data.lastName );
                     printf("Phone Number: %d\n\n", contacts[i] -> data.phoneNumber ); 
@@ -209,7 +206,6 @@ int main() {
                     ContactPtr nextContact = contacts[i] -> next;
                     
                     while (nextContact != NULL){
-                        printf("index: %d\n", i);
                         printf("First Name: %s\n", nextContact -> data.firstName );
                         printf("Last Name: %s\n", nextContact -> data.lastName );
                         printf("Phone Number: %d\n\n", nextContact -> data.phoneNumber );
