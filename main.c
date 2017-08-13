@@ -55,6 +55,7 @@ int main() {
         printf("6. Load contacts from file\n");
         printf("7. Sort contacts\n");
         printf("8. List contacts\n");
+        printf("9. Load contacts sample\n");
         printf("0. Exit program\n\n");
         printf("   Enter your option: ");
         scanf("%d", &select);
@@ -170,14 +171,14 @@ int main() {
                 if (contacts[i] != 0){
                     fprintf(out, "%s ", contacts[i] -> data.firstName);
                     fprintf(out, "%s ", contacts[i] -> data.lastName);
-                    fprintf(out, "%f\n", contacts[i] -> data.phoneNumber);
+                    fprintf(out, "%0.f\n", contacts[i] -> data.phoneNumber);
                     
                     ContactPtr nextContact = contacts[i] -> next;
                     
                     while (nextContact != NULL){
                         fprintf(out, "%s ", nextContact -> data.firstName);
                         fprintf(out, "%s ", nextContact -> data.lastName);
-                        fprintf(out, "%f\n", nextContact -> data.phoneNumber);
+                        fprintf(out, "%0.f\n", nextContact -> data.phoneNumber);
                         
                         nextContact = nextContact -> next;
                     }
@@ -240,6 +241,32 @@ int main() {
                     }
                 }
             }
+        } else if (select == 9){
+            ContactPtr temp = (ContactPtr) malloc(sizeof(Contact));
+            
+            // Clear contact list
+            for(int i = 1; i <= MAX_CONTACTS; i++){
+                if (contacts[i] != NULL){
+                    contacts[i] = NULL;
+                }
+            }
+            
+            // Read file
+            FILE *in = fopen("sample.txt", "r");
+            
+            // Get name and grade until EOF
+            while (fscanf(in, "%s", temp -> data.firstName) != EOF){
+
+                fscanf(in, "%s", temp -> data.lastName);
+                fscanf(in, "%f", &temp -> data.phoneNumber);
+                temp -> next = NULL;
+                
+                int index = getIndex(temp -> data.firstName, temp -> data.lastName);
+                
+                addContact(index, temp, contacts);
+            }
+            
+            fclose(in);
         } else if (select == 0){ // Exit program and message
                 printf("Thank you!\n");
                 printf("This program was developed by\n");
