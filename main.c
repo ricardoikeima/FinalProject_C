@@ -20,7 +20,7 @@
 typedef struct { 
     char firstName[50];
     char lastName[50];
-    int phoneNumber;
+    float phoneNumber;
 } NodeData;
 
 typedef struct node{
@@ -31,14 +31,16 @@ typedef struct node{
 int getIndex(char [], char []);
 ContactPtr createContact(char [], char [], int);
 void addContact(int, ContactPtr, ContactPtr []);
-
+void sortContacts(ContactPtr []);
+ContactPtr insertContactIntoLinkList (ContactPtr, ContactPtr);
+    
 /*
  * 
  */
 int main() {
 
     // Create array of contacts
-    ContactPtr contacts[MAX_CONTACTS + 1] = {0};
+    ContactPtr contacts[MAX_CONTACTS + 1] = { NULL };
        
     int select = -1;
     
@@ -56,7 +58,8 @@ int main() {
         printf("0. Exit program\n\n");
         printf("   Enter your option: ");
         scanf("%d", &select);
-        //system("@cls||clear");
+        
+        system("@cls||clear");
         
         if (select == 1){
             char firstName[50];
@@ -67,13 +70,17 @@ int main() {
             printf("Enter last name: ");
             scanf("%s", lastName);
             printf("Enter phone number: ");
-            scanf("%d", &phoneNumber);
+            scanf("%f", &phoneNumber);
             
             ContactPtr newContact = createContact(firstName, lastName, phoneNumber);
             
             int index = getIndex(firstName, lastName);
             
             addContact(index, newContact, contacts);
+            
+            system("@cls||clear");            
+            
+            printf("Contact successfully added!\n\n");
             
         } else if (select == 2){
             char firstName[50];
@@ -90,10 +97,13 @@ int main() {
              if (contact == NULL){
                 printf("Contact not found!\n");       
             } else {
-                printf("Current phone number: %d\n\n", contact -> data.phoneNumber);
+                printf("Current phone number: %.0f\n\n", contact -> data.phoneNumber);
                 printf("Enter new phone number: ");
-                scanf("%d", &contact -> data.phoneNumber);
-                printf("New phone number saved!\n");
+                scanf("%f", &contact -> data.phoneNumber);
+                
+                system("@cls||clear");
+                
+                printf("New phone number saved!\n\n");
             }
             
         } else if (select == 3) {
@@ -117,11 +127,13 @@ int main() {
             }
             
             if (contact == NULL){
-                printf("Contact not found!\n");
+                printf("Contact not found!\n\n");
             } else {
+                system("@cls||clear");
+                
                 printf("First name: %s\n", contact -> data.firstName);
                 printf("Last name: %s\n", contact -> data.lastName);
-                printf("Phone number: %d\n\n", contact -> data.phoneNumber);
+                printf("Phone number: %.0f\n\n", contact -> data.phoneNumber);                                           
             }
             
         } else if (select == 4){
@@ -142,8 +154,11 @@ int main() {
                 printf("The following contact:\n");
                 printf("First name: %s\n", contact -> data.firstName);
                 printf("Last name: %s\n", contact -> data.lastName);
-                printf("First name: %d\n", contact -> data.phoneNumber); 
-                printf("Was successfully deleted!\n");
+                printf("First name: %.0f\n", contact -> data.phoneNumber); 
+                
+                system("@cls||clear");
+                
+                printf("Was successfully deleted!\n\n");
                 
                 contacts[index] = NULL;
             }
@@ -151,18 +166,18 @@ int main() {
             // Write file
             FILE *out = fopen("contacts.txt", "w");
             
-            for(int i = 1; i <= MAX_CONTACTS; i++){
+            for(int i = 0; i <= MAX_CONTACTS; i++){
                 if (contacts[i] != 0){
                     fprintf(out, "%s ", contacts[i] -> data.firstName);
                     fprintf(out, "%s ", contacts[i] -> data.lastName);
-                    fprintf(out, "%d\n", contacts[i] -> data.phoneNumber);
+                    fprintf(out, "%f\n", contacts[i] -> data.phoneNumber);
                     
                     ContactPtr nextContact = contacts[i] -> next;
                     
                     while (nextContact != NULL){
                         fprintf(out, "%s ", nextContact -> data.firstName);
                         fprintf(out, "%s ", nextContact -> data.lastName);
-                        fprintf(out, "%d\n", nextContact -> data.phoneNumber);
+                        fprintf(out, "%f\n", nextContact -> data.phoneNumber);
                         
                         nextContact = nextContact -> next;
                     }
@@ -171,50 +186,61 @@ int main() {
             
             fclose(out);
             
+            system("@cls||clear");
+            
             printf("File Saved!\n");
             
         } else if (select == 6){
-            ContactPtr contact = (ContactPtr) malloc(sizeof(Contact));
+            ContactPtr temp = (ContactPtr) malloc(sizeof(Contact));
             
-            ContactPtr contacts[MAX_CONTACTS + 1] = {0};
+            // Clear contact list
+            for(int i = 1; i <= MAX_CONTACTS; i++){
+                if (contacts[i] != NULL){
+                    contacts[i] = NULL;
+                }
+            }
+            
             // Read file
             FILE *in = fopen("contacts.txt", "r");
             
             // Get name and grade until EOF
-            while (fscanf(in, "%s", contact -> data.firstName) != EOF){
+            while (fscanf(in, "%s", temp -> data.firstName) != EOF){
 
-                fscanf(in, "%s", contact -> data.lastName);
-                fscanf(in, "%d", &contact -> data.phoneNumber);
+                fscanf(in, "%s", temp -> data.lastName);
+                fscanf(in, "%f", &temp -> data.phoneNumber);
+                temp -> next = NULL;
                 
-                int index = getIndex(contact -> data.firstName, contact -> data.lastName);
+                int index = getIndex(temp -> data.firstName, temp -> data.lastName);
                 
-                addContact(index, contact, contacts);
+                addContact(index, temp, contacts);
             }
             
             fclose(in);
         } else if (select == 7){
-            //TO DO   
+            sortContacts(contacts);
         } else if (select == 8){
             printf("Contact List\n");
             
             for(int i = 1; i <= MAX_CONTACTS; i++){
-                if (contacts[i] != 0){
+                if (contacts[i] != NULL){
+                    
                     printf("First Name: %s\n", contacts[i] -> data.firstName );
                     printf("Last Name: %s\n", contacts[i] -> data.lastName );
-                    printf("Phone Number: %d\n\n", contacts[i] -> data.phoneNumber ); 
+                    printf("Phone Number: %.0f\n\n", contacts[i] -> data.phoneNumber ); 
                     
                     ContactPtr nextContact = contacts[i] -> next;
                     
                     while (nextContact != NULL){
+
                         printf("First Name: %s\n", nextContact -> data.firstName );
                         printf("Last Name: %s\n", nextContact -> data.lastName );
-                        printf("Phone Number: %d\n\n", nextContact -> data.phoneNumber );
+                        printf("Phone Number: %.0f\n\n", nextContact -> data.phoneNumber );
                         
                         nextContact = nextContact -> next;
                     }
                 }
             }
-        } else if (select == 0){
+        } else if (select == 0){ // Exit program and message
                 printf("Thank you!\n");
                 printf("This program was developed by\n");
                 printf("Ricardo Satoshi Ikeima\n");
@@ -255,7 +281,15 @@ ContactPtr createContact(char firstName[], char lastName[], int phoneNumber){
     return contact;
 }
 
-void addContact(int index, ContactPtr newContact, ContactPtr contacts[]){
+// Add contact to contact list
+void addContact(int index, ContactPtr contact, ContactPtr contacts[]){
+    
+    ContactPtr newContact = (ContactPtr) malloc(sizeof(Contact));
+    
+    strcpy(newContact -> data.firstName, contact -> data.firstName);
+    strcpy(newContact -> data.lastName, contact -> data.lastName);
+    newContact -> data.phoneNumber = contact -> data.phoneNumber;
+    newContact ->next = contact -> next;
     if (contacts[index] == NULL){
         contacts[index] = newContact;              
     } else { // We have a collision!
@@ -269,22 +303,116 @@ void addContact(int index, ContactPtr newContact, ContactPtr contacts[]){
         } else { // Get the next one and compare
             ContactPtr nextContact = currentContact -> next;
 
-                // Create a sorted link list
-                while (nextContact != NULL){
-                    if (strcmp(nextContact -> data.firstName, newContact -> data.firstName) > 0 &&
-                        strcmp(nextContact -> data.firstName, newContact -> data.firstName) > 0) {
-                        currentContact -> next = newContact;
-                        newContact -> next = nextContact;
-                        break;
-                    } else {
-                        currentContact = nextContact;
-                        nextContact = currentContact -> next;
-                    }
+            // Create a sorted link list
+            while (nextContact != NULL){
+                if (strcmp(nextContact -> data.firstName, newContact -> data.firstName) > 0 &&
+                    strcmp(nextContact -> data.firstName, newContact -> data.firstName) > 0) {
+                    currentContact -> next = newContact;
+                    newContact -> next = nextContact;
+                    break;
+                } else {
+                    currentContact = nextContact;
+                    nextContact = currentContact -> next;
                 }
+            }
 
             if (currentContact == NULL){ // If there is no next, store new contact as next
                 currentContact -> next = newContact;
             }
         }
     }
+}
+
+// Create a link list and print sorted contact
+void sortContacts(ContactPtr contacts[]){
+    int i;
+    
+    // New node
+    ContactPtr contact = NULL;
+    
+    // Link list head;
+    ContactPtr head = NULL;
+        
+    // Create link list
+    for(i = 1; i <= MAX_CONTACTS; i++){
+ 
+        if (contacts[i] != 0){
+            // Allocate memory for new node
+            contact = (ContactPtr)malloc(sizeof(Contact));
+            
+            // Create node
+            strcpy(contact -> data.firstName, contacts[i] -> data.firstName);
+            strcpy(contact -> data.lastName, contacts[i] -> data.lastName);
+            contact -> data.phoneNumber = contacts[i] -> data.phoneNumber;
+            contact -> next = NULL;
+            
+            if (head == NULL){// Set the new node as head
+                head = contact;
+            } else {
+                head = insertContactIntoLinkList(head, contact);
+            }
+            
+            // Create node for link list
+            if (contacts[i] -> next != NULL){
+                ContactPtr nextContact = contacts[i] -> next;
+                
+                while (nextContact != NULL){
+                    // Allocate memory for new node
+                    contact = (ContactPtr)malloc(sizeof(Contact));
+                    
+                    strcpy(contact -> data.firstName, nextContact -> data.firstName);
+                    strcpy(contact -> data.lastName, nextContact -> data.lastName);
+                    contact -> data.phoneNumber = nextContact -> data.phoneNumber; 
+                    contact -> next = NULL;
+                    
+                    head = insertContactIntoLinkList(head, contact);
+                    
+                    nextContact = nextContact -> next;
+                }
+            }
+       }
+    }
+    
+    ContactPtr contactNext = head;
+    // Print link list
+    while (contactNext != NULL){
+        printf("First Name: %s \n", contactNext -> data.firstName);
+        printf("Last Name: %s \n", contactNext -> data.lastName);
+        printf("Phone Number: %.0f \n\n", contactNext -> data.phoneNumber);
+        
+        contactNext = contactNext -> next;
+    }
+}
+// Insert item into Link list
+ContactPtr insertContactIntoLinkList (ContactPtr head, ContactPtr contact){
+    // Flag if a contact is placed in link list
+    int placed = 0;
+
+    ContactPtr currentContact = head;
+    ContactPtr nextContact = currentContact -> next;
+    
+    // Place item in Link List
+    while (placed == 0){
+        // Compare with head
+        if (strcmp(head -> data.firstName, contact -> data.firstName) > 0 &&
+                    strcmp(head -> data.firstName, contact -> data.firstName) > 0){
+            ContactPtr temp = contact;
+            temp -> next = head; 
+            head = contact;
+            placed = 1;
+        } else if (nextContact == NULL){
+            currentContact -> next = contact;
+            placed = 1;
+        } else if (strcmp(nextContact -> data.firstName, contact -> data.firstName) > 0 &&
+                    strcmp(nextContact -> data.firstName, contact -> data.firstName) > 0) {
+            currentContact -> next = contact;
+            contact -> next = nextContact;
+            placed = 1;
+        } else {
+            currentContact = nextContact;
+            nextContact = currentContact -> next;
+        }
+    }
+    
+    return head;
 }
