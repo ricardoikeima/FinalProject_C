@@ -117,6 +117,13 @@ int main() {
             //TO DO           
         } else if (select == 7){
             //TO DO           
+        } else if (select == 0){
+                printf("Thank you!\n");
+                printf("This program was developed by\n");
+                printf("Ricardo Satoshi Ikeima\n");
+                printf("Rongfu Li\n"); 
+                printf("PROG20799 Data Structures & Algorithm Development - C\n"); 
+                printf("Final Project - 14 - AUG - 2017\n");
         }
     }
 
