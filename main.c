@@ -55,7 +55,7 @@ int main() {
         printf("6. Load contacts from file\n");
         printf("7. Sort contacts\n");
         printf("8. List contacts\n");
-        printf("9. Load contacts sample\n");
+        printf("9. Load sample list\n");
         printf("0. Exit program\n\n");
         printf("   Enter your option: ");
         scanf("%d", &select);
@@ -221,10 +221,10 @@ int main() {
             sortContacts(contacts);
         } else if (select == 8){
             printf("Contact List\n");
-            
+            int counter = 1;
             for(int i = 1; i <= MAX_CONTACTS; i++){
                 if (contacts[i] != NULL){
-                    
+                    printf("Contact number: %d\n", counter++);
                     printf("First Name: %s\n", contacts[i] -> data.firstName );
                     printf("Last Name: %s\n", contacts[i] -> data.lastName );
                     printf("Phone Number: %.0f\n\n", contacts[i] -> data.phoneNumber ); 
@@ -232,7 +232,7 @@ int main() {
                     ContactPtr nextContact = contacts[i] -> next;
                     
                     while (nextContact != NULL){
-
+                        printf("Contact number: %d\n", counter++);
                         printf("First Name: %s\n", nextContact -> data.firstName );
                         printf("Last Name: %s\n", nextContact -> data.lastName );
                         printf("Phone Number: %.0f\n\n", nextContact -> data.phoneNumber );
@@ -317,34 +317,37 @@ void addContact(int index, ContactPtr contact, ContactPtr contacts[]){
     strcpy(newContact -> data.lastName, contact -> data.lastName);
     newContact -> data.phoneNumber = contact -> data.phoneNumber;
     newContact ->next = contact -> next;
+    
     if (contacts[index] == NULL){
         contacts[index] = newContact;              
     } else { // We have a collision!
+        
+        // Flag if a contact is placed in link list
+        int placed = 0;
+        
+        // Head is the first item
         ContactPtr currentContact = contacts[index];
+        ContactPtr nextContact = currentContact -> next;
 
-        // Verify the first item. If the new contact is lower, store it as first and move the current to next
-        if (strcmp(currentContact -> data.firstName, newContact -> data.firstName) > 0 &&
-                strcmp(currentContact -> data.firstName, newContact -> data.firstName) > 0) {
-                newContact -> next = currentContact;
+        // Place item in Link List
+        while (placed == 0){
+            // Compare with head
+            if (strcmp(contacts[index] -> data.firstName, newContact -> data.firstName) > 0 &&
+                        strcmp(contacts[index] -> data.firstName, newContact -> data.firstName) > 0){
+                newContact -> next = contacts[index]; 
                 contacts[index] = newContact;
-        } else { // Get the next one and compare
-            ContactPtr nextContact = currentContact -> next;
-
-            // Create a sorted link list
-            while (nextContact != NULL){
-                if (strcmp(nextContact -> data.firstName, newContact -> data.firstName) > 0 &&
-                    strcmp(nextContact -> data.firstName, newContact -> data.firstName) > 0) {
-                    currentContact -> next = newContact;
-                    newContact -> next = nextContact;
-                    break;
-                } else {
-                    currentContact = nextContact;
-                    nextContact = currentContact -> next;
-                }
-            }
-
-            if (currentContact == NULL){ // If there is no next, store new contact as next
+                placed = 1;
+            } else if (nextContact == NULL){
                 currentContact -> next = newContact;
+                placed = 1;
+            } else if (strcmp(nextContact -> data.firstName, newContact -> data.firstName) > 0 &&
+                        strcmp(nextContact -> data.firstName, newContact -> data.firstName) > 0) {
+                currentContact -> next = newContact;
+                newContact -> next = nextContact;
+                placed = 1;
+            } else {
+                currentContact = nextContact;
+                nextContact = currentContact -> next;
             }
         }
     }
