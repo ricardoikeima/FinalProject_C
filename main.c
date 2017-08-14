@@ -22,7 +22,7 @@
 typedef struct { 
     char firstName[50];
     char lastName[50];
-    float phoneNumber;
+    char phoneNumber[11];
 } NodeData;
 
 typedef struct node{
@@ -31,7 +31,7 @@ typedef struct node{
 } Contact, *ContactPtr;
 
 int getIndex(char [], char []);
-ContactPtr createContact(char [], char [], int);
+ContactPtr createContact(char [], char [], char []);
 void addContact(int, ContactPtr, ContactPtr []);
 void sortContacts(ContactPtr []);
 ContactPtr insertContactIntoLinkedList (ContactPtr, ContactPtr);
@@ -67,13 +67,13 @@ int main() {
             if (select == 1){
                 char firstName[50];
                 char lastName[50];
-                int phoneNumber;
+                char phoneNumber[11];
                 printf("Enter first name: ");
                 scanf("%s", firstName);
                 printf("Enter last name: ");
                 scanf("%s", lastName);
                 printf("Enter phone number: ");
-                scanf("%f", &phoneNumber);
+                scanf("%s", phoneNumber);
 
                 ContactPtr newContact = createContact(firstName, lastName, phoneNumber);
 
@@ -100,9 +100,9 @@ int main() {
                  if (contact == NULL){
                     printf("Contact not found!\n");       
                 } else {
-                    printf("Current phone number: %.0f\n\n", contact -> data.phoneNumber);
+                    printf("Current phone number: %s\n\n", contact -> data.phoneNumber);
                     printf("Enter new phone number: ");
-                    scanf("%f", &contact -> data.phoneNumber);
+                    scanf("%s", contact -> data.phoneNumber);
 
                     system("@cls||clear");
 
@@ -136,7 +136,7 @@ int main() {
 
                     printf("First name: %s\n", contact -> data.firstName);
                     printf("Last name: %s\n", contact -> data.lastName);
-                    printf("Phone number: %.0f\n\n", contact -> data.phoneNumber);                                           
+                    printf("Phone number: %s\n\n", contact -> data.phoneNumber);                                           
                 }
 
             } else if (select == 4){
@@ -157,7 +157,7 @@ int main() {
                     printf("The following contact:\n");
                     printf("First name: %s\n", contact -> data.firstName);
                     printf("Last name: %s\n", contact -> data.lastName);
-                    printf("First name: %.0f\n", contact -> data.phoneNumber); 
+                    printf("First name: %s\n", contact -> data.phoneNumber); 
 
                     system("@cls||clear");
 
@@ -173,14 +173,14 @@ int main() {
                     if (contacts[i] != 0){
                         fprintf(out, "%s ", contacts[i] -> data.firstName);
                         fprintf(out, "%s ", contacts[i] -> data.lastName);
-                        fprintf(out, "%0.f\n", contacts[i] -> data.phoneNumber);
+                        fprintf(out, "%s\n", contacts[i] -> data.phoneNumber);
 
                         ContactPtr nextContact = contacts[i] -> next;
 
                         while (nextContact != NULL){
                             fprintf(out, "%s ", nextContact -> data.firstName);
                             fprintf(out, "%s ", nextContact -> data.lastName);
-                            fprintf(out, "%0.f\n", nextContact -> data.phoneNumber);
+                            fprintf(out, "%s\n", nextContact -> data.phoneNumber);
 
                             nextContact = nextContact -> next;
                         }
@@ -210,7 +210,7 @@ int main() {
                 while (fscanf(in, "%s", temp -> data.firstName) != EOF){
 
                     fscanf(in, "%s", temp -> data.lastName);
-                    fscanf(in, "%f", &temp -> data.phoneNumber);
+                    fscanf(in, "%s", temp -> data.phoneNumber);
                     temp -> next = NULL;
 
                     int index = getIndex(temp -> data.firstName, temp -> data.lastName);
@@ -229,7 +229,7 @@ int main() {
                         printf("Contact number: %d\n", counter++);
                         printf("First Name: %s\n", contacts[i] -> data.firstName );
                         printf("Last Name: %s\n", contacts[i] -> data.lastName );
-                        printf("Phone Number: %.0f\n\n", contacts[i] -> data.phoneNumber ); 
+                        printf("Phone Number: %s\n\n", contacts[i] -> data.phoneNumber ); 
 
                         ContactPtr nextContact = contacts[i] -> next;
 
@@ -237,7 +237,7 @@ int main() {
                             printf("Contact number: %d\n", counter++);
                             printf("First Name: %s\n", nextContact -> data.firstName );
                             printf("Last Name: %s\n", nextContact -> data.lastName );
-                            printf("Phone Number: %.0f\n\n", nextContact -> data.phoneNumber );
+                            printf("Phone Number: %s\n\n", nextContact -> data.phoneNumber );
 
                             nextContact = nextContact -> next;
                         }
@@ -260,7 +260,7 @@ int main() {
                 while (fscanf(in, "%s", temp -> data.firstName) != EOF){
 
                     fscanf(in, "%s", temp -> data.lastName);
-                    fscanf(in, "%f", &temp -> data.phoneNumber);
+                    fscanf(in, "%s", temp -> data.phoneNumber);
                     temp -> next = NULL;
 
                     int index = getIndex(temp -> data.firstName, temp -> data.lastName);
@@ -309,11 +309,11 @@ int getIndex(char firstName[], char lastName[]){
 }
 
 // Create the contact
-ContactPtr createContact(char firstName[], char lastName[], int phoneNumber){
+ContactPtr createContact(char firstName[], char lastName[], char phoneNumber[]){
     ContactPtr contact = (ContactPtr)malloc(sizeof(Contact));
     strcpy(contact -> data.firstName, firstName);
     strcpy(contact -> data.lastName, lastName);
-    contact -> data.phoneNumber = phoneNumber;
+    strcpy(contact -> data.phoneNumber, phoneNumber);
     contact -> next = NULL;
     
     return contact;
@@ -326,7 +326,7 @@ void addContact(int index, ContactPtr contact, ContactPtr contacts[]){
     
     strcpy(newContact -> data.firstName, contact -> data.firstName);
     strcpy(newContact -> data.lastName, contact -> data.lastName);
-    newContact -> data.phoneNumber = contact -> data.phoneNumber;
+    strcpy(newContact -> data.phoneNumber, contact -> data.phoneNumber);
     newContact ->next = contact -> next;
     
     if (contacts[index] == NULL){
@@ -418,26 +418,6 @@ void addContact(int index, ContactPtr contact, ContactPtr contacts[]){
                 currentContact = nextContact;
                 nextContact = currentContact -> next;
             }
-
-            /*
-            // Compare with head
-            if (strcmp(contacts[index] -> data.firstName, newContact -> data.firstName) > 0 &&
-                        strcmp(contacts[index] -> data.lastName, newContact -> data.lastName) > 0){
-                newContact -> next = contacts[index]; 
-                contacts[index] = newContact;
-                placed = 1;
-            } else if (nextContact == NULL){
-                currentContact -> next = newContact;
-                placed = 1;
-            } else if (strcmp(nextContact -> data.firstName, newContact -> data.firstName) > 0 &&
-                        strcmp(nextContact -> data.lastName, newContact -> data.lastName) > 0) {
-                currentContact -> next = newContact;
-                newContact -> next = nextContact;
-                placed = 1;
-            } else {
-                currentContact = nextContact;
-                nextContact = currentContact -> next;
-            }*/
         }
     }
 }
@@ -462,7 +442,7 @@ void sortContacts(ContactPtr contacts[]){
             // Create node
             strcpy(contact -> data.firstName, contacts[i] -> data.firstName);
             strcpy(contact -> data.lastName, contacts[i] -> data.lastName);
-            contact -> data.phoneNumber = contacts[i] -> data.phoneNumber;
+            strcpy(contact -> data.phoneNumber, contacts[i] -> data.phoneNumber);
             contact -> next = NULL;
             
             if (head == NULL){// Set the new node as head
@@ -480,7 +460,7 @@ void sortContacts(ContactPtr contacts[]){
 
                 strcpy(contact -> data.firstName, nextContact -> data.firstName);
                 strcpy(contact -> data.lastName, nextContact -> data.lastName);
-                contact -> data.phoneNumber = nextContact -> data.phoneNumber; 
+                strcpy(contact -> data.phoneNumber, nextContact -> data.phoneNumber); 
                 contact -> next = NULL;
 
                 head = insertContactIntoLinkedList(head, contact);
@@ -496,7 +476,7 @@ void sortContacts(ContactPtr contacts[]){
     while (contactNext != NULL){
         printf("First Name: %s \n", contactNext -> data.firstName);
         printf("Last Name: %s \n", contactNext -> data.lastName);
-        printf("Phone Number: %.0f \n\n", contactNext -> data.phoneNumber);
+        printf("Phone Number: %s \n\n", contactNext -> data.phoneNumber);
         
         contactNext = contactNext -> next;
     }
