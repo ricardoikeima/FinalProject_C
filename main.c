@@ -32,7 +32,7 @@ int getIndex(char [], char []);
 ContactPtr createContact(char [], char [], int);
 void addContact(int, ContactPtr, ContactPtr []);
 void sortContacts(ContactPtr []);
-ContactPtr insertContactIntoLinkList (ContactPtr, ContactPtr);
+ContactPtr insertContactIntoLinkedList (ContactPtr, ContactPtr);
     
 /*
  * 
@@ -331,9 +331,87 @@ void addContact(int index, ContactPtr contact, ContactPtr contacts[]){
 
         // Place item in Link List
         while (placed == 0){
+            
+            // Get the string length. We will compare just the same length
+            int currentFirstNameLength = strlen(currentContact -> data.firstName);
+            int currentLastNameLength = strlen(currentContact -> data.lastName);
+
+            int nextFirstNameLength = strlen(currentContact -> data.firstName);
+            int nextLastNameLength = strlen(currentContact -> data.lastName);
+
+            int contactFirstNameLength = strlen(contact -> data.firstName);
+            int contactLastNameLength = strlen(contact -> data.lastName);
+        
+            // Get the lowest length:       
+            int l1 = 0;
+            if (currentFirstNameLength > contactFirstNameLength) {
+                l1 = contactFirstNameLength;
+            } else {
+                l1 = currentFirstNameLength;
+            }
+
+            int l2 = 0;
+            if (currentLastNameLength > contactLastNameLength) {
+                l2 = contactFirstNameLength;
+            } else {
+                l2 = currentLastNameLength;
+            }
+
+            int l3 = 0;
+            if (nextFirstNameLength > contactFirstNameLength) {
+                l3 = contactFirstNameLength;
+            } else {
+                l3 = nextFirstNameLength;
+            }
+
+            int l4 = 0;
+            if (nextLastNameLength> contactLastNameLength) {
+                l4 = contactFirstNameLength;
+            } else {
+                l4 = nextLastNameLength;
+            }
+
+            // Compare with head
+            if (strncmp(contacts[index] -> data.firstName, contact -> data.firstName, l1) > 0){
+
+                if (strncmp(contacts[index] -> data.lastName, contact -> data.lastName, l2) > 0){  
+                    newContact -> next = contacts[index]; 
+                    contacts[index] = newContact;
+                    placed = 1;
+                } else {
+                    newContact -> next = nextContact; 
+                    contacts[index] -> next = newContact;
+                    placed = 1;
+                }
+
+            } else if (nextContact == NULL){ // If there is no next contact
+                currentContact -> next = contact;
+                placed = 1;
+            } else if (strncmp(nextContact -> data.firstName, contact -> data.firstName, l3) > 0) {
+
+                currentContact -> next = newContact;
+                newContact -> next = nextContact;
+                placed = 1;
+
+            } else if (strncmp(nextContact -> data.firstName, contact -> data.firstName, l3) == 0) {
+
+                if (strncmp(nextContact -> data.lastName, contact -> data.lastName, l4) >= 0){
+                    currentContact -> next = newContact;
+                    newContact -> next = nextContact;
+                    placed = 1;
+                } else {
+                    currentContact = nextContact;
+                    nextContact = currentContact -> next;
+                }
+            } else {
+                currentContact = nextContact;
+                nextContact = currentContact -> next;
+            }
+
+            /*
             // Compare with head
             if (strcmp(contacts[index] -> data.firstName, newContact -> data.firstName) > 0 &&
-                        strcmp(contacts[index] -> data.firstName, newContact -> data.firstName) > 0){
+                        strcmp(contacts[index] -> data.lastName, newContact -> data.lastName) > 0){
                 newContact -> next = contacts[index]; 
                 contacts[index] = newContact;
                 placed = 1;
@@ -341,14 +419,14 @@ void addContact(int index, ContactPtr contact, ContactPtr contacts[]){
                 currentContact -> next = newContact;
                 placed = 1;
             } else if (strcmp(nextContact -> data.firstName, newContact -> data.firstName) > 0 &&
-                        strcmp(nextContact -> data.firstName, newContact -> data.firstName) > 0) {
+                        strcmp(nextContact -> data.lastName, newContact -> data.lastName) > 0) {
                 currentContact -> next = newContact;
                 newContact -> next = nextContact;
                 placed = 1;
             } else {
                 currentContact = nextContact;
                 nextContact = currentContact -> next;
-            }
+            }*/
         }
     }
 }
@@ -379,31 +457,30 @@ void sortContacts(ContactPtr contacts[]){
             if (head == NULL){// Set the new node as head
                 head = contact;
             } else {
-                head = insertContactIntoLinkList(head, contact);
+                head = insertContactIntoLinkedList(head, contact);
             }
             
             // Create node for link list
-            if (contacts[i] -> next != NULL){
-                ContactPtr nextContact = contacts[i] -> next;
-                
-                while (nextContact != NULL){
-                    // Allocate memory for new node
-                    contact = (ContactPtr)malloc(sizeof(Contact));
-                    
-                    strcpy(contact -> data.firstName, nextContact -> data.firstName);
-                    strcpy(contact -> data.lastName, nextContact -> data.lastName);
-                    contact -> data.phoneNumber = nextContact -> data.phoneNumber; 
-                    contact -> next = NULL;
-                    
-                    head = insertContactIntoLinkList(head, contact);
-                    
-                    nextContact = nextContact -> next;
-                }
+            ContactPtr nextContact = contacts[i] -> next;
+
+            while (nextContact != NULL){
+                // Allocate memory for new node
+                contact = (ContactPtr)malloc(sizeof(Contact));
+
+                strcpy(contact -> data.firstName, nextContact -> data.firstName);
+                strcpy(contact -> data.lastName, nextContact -> data.lastName);
+                contact -> data.phoneNumber = nextContact -> data.phoneNumber; 
+                contact -> next = NULL;
+
+                head = insertContactIntoLinkedList(head, contact);
+
+                nextContact = nextContact -> next;
             }
        }
     }
     
     ContactPtr contactNext = head;
+
     // Print link list
     while (contactNext != NULL){
         printf("First Name: %s \n", contactNext -> data.firstName);
@@ -413,8 +490,8 @@ void sortContacts(ContactPtr contacts[]){
         contactNext = contactNext -> next;
     }
 }
-// Insert item into Link list
-ContactPtr insertContactIntoLinkList (ContactPtr head, ContactPtr contact){
+// Insert item into Linked list
+ContactPtr insertContactIntoLinkedList (ContactPtr head, ContactPtr contact){
     // Flag if a contact is placed in link list
     int placed = 0;
 
@@ -423,21 +500,78 @@ ContactPtr insertContactIntoLinkList (ContactPtr head, ContactPtr contact){
     
     // Place item in Link List
     while (placed == 0){
+        
+        // Get the string length. We will compare just the same length
+        int currentFirstNameLength = strlen(currentContact -> data.firstName);
+        int currentLastNameLength = strlen(currentContact -> data.lastName);
+
+        int nextFirstNameLength = strlen(currentContact -> data.firstName);
+        int nextLastNameLength = strlen(currentContact -> data.lastName);
+        
+        int contactFirstNameLength = strlen(contact -> data.firstName);
+        int contactLastNameLength = strlen(contact -> data.lastName);
+        
+        // Get the lowest length:       
+        int l1 = 0;
+        if (currentFirstNameLength > contactFirstNameLength) {
+            l1 = contactFirstNameLength;
+        } else {
+            l1 = currentFirstNameLength;
+        }
+        
+        int l2 = 0;
+        if (currentLastNameLength > contactLastNameLength) {
+            l2 = contactFirstNameLength;
+        } else {
+            l2 = currentLastNameLength;
+        }
+        
+        int l3 = 0;
+        if (nextFirstNameLength > contactFirstNameLength) {
+            l3 = contactFirstNameLength;
+        } else {
+            l3 = nextFirstNameLength;
+        }
+        
+        int l4 = 0;
+        if (nextLastNameLength> contactLastNameLength) {
+            l4 = contactFirstNameLength;
+        } else {
+            l4 = nextLastNameLength;
+        }
+        
         // Compare with head
-        if (strcmp(head -> data.firstName, contact -> data.firstName) > 0 &&
-                    strcmp(head -> data.firstName, contact -> data.firstName) > 0){
-            ContactPtr temp = contact;
-            temp -> next = head; 
-            head = contact;
-            placed = 1;
-        } else if (nextContact == NULL){
+        if (strncmp(head -> data.firstName, contact -> data.firstName, l1) > 0){
+            
+            if (strncmp(head -> data.lastName, contact -> data.lastName, l2) > 0){
+                contact -> next = head; 
+                head = contact;
+                placed = 1;
+            } else {
+                contact -> next = nextContact; 
+                head -> next = contact;
+                placed = 1;
+            }
+
+        } else if (nextContact == NULL){ // If there is no next contact
             currentContact -> next = contact;
             placed = 1;
-        } else if (strcmp(nextContact -> data.firstName, contact -> data.firstName) > 0 &&
-                    strcmp(nextContact -> data.firstName, contact -> data.firstName) > 0) {
+        } else if (strncmp(nextContact -> data.firstName, contact -> data.firstName, l3) > 0) {
+           
             currentContact -> next = contact;
             contact -> next = nextContact;
             placed = 1;
+            
+        } else if (strncmp(nextContact -> data.firstName, contact -> data.firstName, l3) == 0) {
+
+            if (strncmp(nextContact -> data.lastName, contact -> data.lastName, l4) > 0){
+                currentContact -> next = contact;
+                contact -> next = nextContact;
+                placed = 1;
+            } else {
+                currentContact = nextContact;
+                nextContact = currentContact -> next;
+            }
         } else {
             currentContact = nextContact;
             nextContact = currentContact -> next;
