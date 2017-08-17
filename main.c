@@ -18,6 +18,13 @@
 
 #define MAX_CONTACTS 500
 #define FLUSH while (getchar() != '\n')
+#define NUMBER_OF_LINKED_LIST 5
+#define INDEX_FOR_FULL_NAME_HASH_TABLE 0
+#define INDEX_FOR_PHONE_NUMBER_HASH_TABLE 1
+#define INDEX_FOR_FIRST_NAME_SORTING 2
+#define INDEX_FOR_LAST_NAME_SORTING 3
+#define INDEX_FOR_PHONE_NUMBER_SORTING 4
+
 
 typedef struct { 
     char firstName[50];
@@ -25,25 +32,27 @@ typedef struct {
     char phoneNumber[11];
 } NodeData;
 
-typedef struct node{
-    NodeData data;
-    struct node *next;
-} Contact, *ContactPtr;
+#include "hashContactList.h"
 
 int getIndex(char [], char []);
-ContactPtr createContact(char [], char [], char []);
-void addContact(int, ContactPtr, ContactPtr []);
-void sortContacts(ContactPtr []);
-ContactPtr insertContactIntoLinkedList (ContactPtr, ContactPtr);
-    
+void importSampleFile(ContactPtr [], ContactPtr []);
+ContactPtr searchContact (int, ContactPtr [], ContactPtr []);
+int searchMenu();
 /*
  * 
  */
 int main() {
 
-    // Create array of contacts
-    ContactPtr contacts[MAX_CONTACTS + 1] = { NULL };
-       
+    // Create array of contacts - Hash calculated with Full Name
+    ContactPtr contactsFullName[MAX_CONTACTS + 1] = { NULL };
+    
+    // Create array of contacts - Hash calculated with Phone Number
+    ContactPtr contactsPhoneNumber[MAX_CONTACTS + 1] = { NULL };
+    
+    for (int i = 0; i < NUMBER_OF_LINKED_LIST; i++){
+        linkedListHead[i] = NULL;
+    }
+    
     int select = -1;
     
     // MENU
@@ -65,126 +74,186 @@ int main() {
         system("@cls||clear");
         if (isdigit(select + '0')){
             if (select == 1){
-                char firstName[50];
-                char lastName[50];
-                char phoneNumber[11];
-                printf("Enter first name: ");
-                scanf("%s", firstName);
-                printf("Enter last name: ");
-                scanf("%s", lastName);
+                
+                ContactPtr contact = createContact();
+                // Get contact number;
                 printf("Enter phone number: ");
-                scanf("%s", phoneNumber);
-
-                ContactPtr newContact = createContact(firstName, lastName, phoneNumber);
-
-                int index = getIndex(firstName, lastName);
-
-                addContact(index, newContact, contacts);
-
-                system("@cls||clear");            
-
-                printf("Contact successfully added!\n\n");
-
-            } else if (select == 2){
-                char firstName[50];
-                char lastName[50];
-                printf("Enter first name: ");
-                scanf("%s", firstName);
-                printf("Enter last name: ");
-                scanf("%s", lastName);
-
-                int index = getIndex(firstName, lastName);
-
-                ContactPtr contact = contacts[index];
-
-                 if (contact == NULL){
-                    printf("Contact not found!\n");       
-                } else {
-                    printf("Current phone number: %s\n\n", contact -> data.phoneNumber);
-                    printf("Enter new phone number: ");
-                    scanf("%s", contact -> data.phoneNumber);
-
+                scanf("%s", contact -> data.phoneNumber);
+                
+                // Verify if contact exists
+                ContactPtr verifyName = getContactFullName(contact, contactsFullName);
+                
+                ContactPtr verifyPhone = getContactPhoneNumber(contact, contactsPhoneNumber);
+                
+                // Verify if contact already exist
+                if (verifyName != NULL){
                     system("@cls||clear");
+                    
+                    printf("Contact already exist!\n"); 
+                } else if (verifyPhone != NULL){ // Verify if phone number already exist
+                    system("@cls||clear");
+                    
+                    printf("Phone number already exist!\n"); 
+                } else {
 
-                    printf("New phone number saved!\n\n");
+                
+                    // Add contact to FullName Hash Table
+                    addContactFullName(contact, contactsFullName);
+                    
+                    // Add contact to Phone Number Hash Table
+                    addContactPhoneNumber(contact, contactsPhoneNumber);
+                    
+                    // Add to sorted linked list
+                    addSortedLinkedList(contact);
+                            
+                    system("@cls||clear");            
+
+                    printf("Contact successfully added!\n\n");
                 }
+                
+            } else if (select == 2){ // Edit Contact
+                int selectSearch = -1;
+                
+                while (selectSearch != 0){
+                    printf("--- Contact List: Edit ---\n");
+                
+                    selectSearch = searchMenu();
+                
+                    if (selectSearch != 0){
 
-            } else if (select == 3) {
-                char firstName[50];
-                char lastName[50];
-                printf("Enter first name: ");
-                scanf("%s", firstName);
-                printf("Enter last name: ");
-                scanf("%s", lastName);
+                        // Get contact
+                        ContactPtr oldContact = searchContact(selectSearch, contactsFullName, contactsPhoneNumber);
+                        
+                        if (oldContact == NULL){ // No contact found
+                            printf("Contact not found!\n\n");
+                        } else { // Print Contact
+                            system("@cls||clear");
+                            
+                            printf("First name: %s\n", oldContact -> data.firstName);
+                            printf("Last name: %s\n", oldContact -> data.lastName);
+                            printf("Phone number: %s\n\n", oldContact -> data.phoneNumber);
+                                                        
+                            ContactPtr contact = createContact();
+                            // Get contact number;
+                            printf("Enter phone number: ");
+                            scanf("%s", contact -> data.phoneNumber);
 
-                int index = getIndex(firstName, lastName);
+                            // Remove contact from FullName Hash Table
+                            removeContactFullName(oldContact, contactsFullName);
 
-                ContactPtr contact = contacts[index];
+                            // Remove contact from Phone Number Hash Table
+                            removeContactPhoneNumber(oldContact, contactsPhoneNumber);
 
-                while (contact != NULL){
-                    if (strcmp(contact -> data.firstName, firstName) == 0 && strcmp(contact -> data.lastName, lastName) == 0){
-                        break;
-                    } else {
-                        contact = contact -> next;
+                            // Remove from sorted linked list
+                            removeSortedLinkedList(oldContact);
+
+                            free(oldContact);
+                                
+                            // Verify if contact exists
+                            ContactPtr verifyName = getContactFullName(contact, contactsFullName);
+
+                            ContactPtr verifyPhone = getContactPhoneNumber(contact, contactsPhoneNumber);
+
+                            // Verify if contact already exist
+                            if (verifyName != NULL){
+                                system("@cls||clear");
+
+                                printf("Contact already exist!\n"); 
+                            } else if (verifyPhone != NULL){ // Verify if phone number already exist
+                                system("@cls||clear");
+
+                                printf("Phone number already exist!\n"); 
+                            } else {
+                                // Add contact to FullName Hash Table
+                                addContactFullName(contact, contactsFullName);
+
+                                // Add contact to Phone Number Hash Table
+                                addContactPhoneNumber(contact, contactsPhoneNumber);
+
+                                // Add to sorted linked list
+                                addSortedLinkedList(contact);
+
+                                system("@cls||clear");            
+
+                                printf("Contact was successfully edited!\n\n");
+                            }
+                        }
                     }
                 }
+            } else if (select == 3) { // Search for a contact
+                int selectSearch = -1;
+                
+                while (selectSearch != 0){
+                    printf("--- Contact List: Search ---\n");
+                
+                    selectSearch = searchMenu();
+                
+                    if (selectSearch != 0){
 
-                if (contact == NULL){
-                    printf("Contact not found!\n\n");
-                } else {
-                    system("@cls||clear");
+                        // Get contact
+                        ContactPtr contact = searchContact(selectSearch, contactsFullName, contactsPhoneNumber);
 
-                    printf("First name: %s\n", contact -> data.firstName);
-                    printf("Last name: %s\n", contact -> data.lastName);
-                    printf("Phone number: %s\n\n", contact -> data.phoneNumber);                                           
-                }
+                        if (contact == NULL){ // No contact found
+                            printf("Contact not found!\n\n");
+                        } else { // Print Contact
+                            system("@cls||clear");
+                            
+                            printf("First name: %s\n", contact -> data.firstName);
+                            printf("Last name: %s\n", contact -> data.lastName);
+                            printf("Phone number: %s\n\n", contact -> data.phoneNumber);
+                        }
+                    }
+                }        
+                    
+            } else if (select == 4){ // Delete contact
+                int selectSearch = -1;
+                
+                while (selectSearch != 0){
+                    printf("--- Contact List: Delete ---\n");
+                
+                    selectSearch = searchMenu();
+                
+                    if (selectSearch != 0){
 
-            } else if (select == 4){
-                char firstName[50];
-                char lastName[50];
-                printf("Enter first name: ");
-                scanf("%s", firstName);
-                printf("Enter last name: ");
-                scanf("%s", lastName);
+                        // Get contact
+                        ContactPtr contact = searchContact(selectSearch, contactsFullName, contactsPhoneNumber);
 
-                int index = getIndex(firstName, lastName);
+                        if (contact == NULL){ // No contact found
+                            printf("Contact not found!\n\n");
+                        } else { // Print Contact
+                            system("@cls||clear");
+                            
+                            printf("First name: %s\n", contact -> data.firstName);
+                            printf("Last name: %s\n", contact -> data.lastName);
+                            printf("Phone number: %s\n\n", contact -> data.phoneNumber);
+                            
+                            // Remove contact from FullName Hash Table
+                            removeContactFullName(contact, contactsFullName);
 
-                ContactPtr contact = contacts[index];
+                            // Remove contact from Phone Number Hash Table
+                            removeContactPhoneNumber(contact, contactsPhoneNumber);
 
-                if (contact == NULL){
-                    printf("Contact not found!\n");
-                } else {
-                    printf("The following contact:\n");
-                    printf("First name: %s\n", contact -> data.firstName);
-                    printf("Last name: %s\n", contact -> data.lastName);
-                    printf("First name: %s\n", contact -> data.phoneNumber); 
-
-                    system("@cls||clear");
-
-                    printf("Was successfully deleted!\n\n");
-
-                    contacts[index] = NULL;
+                            // Remove from sorted linked list
+                            removeSortedLinkedList(contact);
+                            
+                            free(contact);
+                            
+                            printf("Contact was successfully deleted!\n\n");
+                        }
+                    }
                 }
             } else if (select == 5){
                 // Write file
                 FILE *out = fopen("contacts.txt", "w");
+                
+                ContactPtr currentContact = linkedListHead[INDEX_FOR_FIRST_NAME_SORTING];
+                
+                while (currentContact != NULL){
+                    fprintf(out, "%s ", currentContact -> data.firstName);
+                    fprintf(out, "%s ", currentContact -> data.lastName);
+                    fprintf(out, "%s\n", currentContact -> data.phoneNumber);
 
-                for(int i = 0; i <= MAX_CONTACTS; i++){
-                    if (contacts[i] != 0){
-                        fprintf(out, "%s ", contacts[i] -> data.firstName);
-                        fprintf(out, "%s ", contacts[i] -> data.lastName);
-                        fprintf(out, "%s\n", contacts[i] -> data.phoneNumber);
-
-                        ContactPtr nextContact = contacts[i] -> next;
-
-                        while (nextContact != NULL){
-                            fprintf(out, "%s ", nextContact -> data.firstName);
-                            fprintf(out, "%s ", nextContact -> data.lastName);
-                            fprintf(out, "%s\n", nextContact -> data.phoneNumber);
-
-                            nextContact = nextContact -> next;
-                        }
-                    }
+                    currentContact = currentContact -> next[INDEX_FOR_FIRST_NAME_SORTING];
                 }
 
                 fclose(out);
@@ -198,40 +267,94 @@ int main() {
 
                 // Clear contact list
                 for(int i = 1; i <= MAX_CONTACTS; i++){
-                    if (contacts[i] != NULL){
-                        contacts[i] = NULL;
+                    if (contactsFullName[i] != NULL){
+                        contactsFullName[i] = NULL;
                     }
                 }
-
+                
+                char firstName[50];
+                
                 // Read file
                 FILE *in = fopen("contacts.txt", "r");
 
-                // Get name and grade until EOF
-                while (fscanf(in, "%s", temp -> data.firstName) != EOF){
+                    // Get name and grade until EOF
+                    while (fscanf(in, "%s", firstName) != EOF){
+                        ContactPtr temp = (ContactPtr) malloc(sizeof(Contact));
 
-                    fscanf(in, "%s", temp -> data.lastName);
-                    fscanf(in, "%s", temp -> data.phoneNumber);
-                    temp -> next = NULL;
+                        strcpy(temp -> data.firstName, firstName);
+                        fscanf(in, "%s", temp -> data.lastName);
+                        fscanf(in, "%s", temp -> data.phoneNumber);
 
-                    int index = getIndex(temp -> data.firstName, temp -> data.lastName);
+                        for (int i = 0; i < NUMBER_OF_LINKED_LIST; i++){
+                            temp -> next[i] = NULL;
+                        }
 
-                    addContact(index, temp, contacts);
-                }
+                     // Add contact to Full Name Hash Table list
+                     addContactFullName(temp, contactsFullName);
+
+                     // Add contact to Phone Number Hash Table
+                     addContactPhoneNumber(temp, contactsPhoneNumber);
+
+                     // Add to sorted linked list
+                     addSortedLinkedList(temp);
+                 }
 
                 fclose(in);
             } else if (select == 7){
-                sortContacts(contacts);
-            } else if (select == 8){
+                int selectSorting = -1;
+                
+                while ( selectSorting != 0){
+                    printf("--- Contact List: Sort ---\n");
+                    printf("1. Sort by first name\n");
+                    printf("2. Sort by last name\n");
+                    printf("3. Sort by phone number\n");
+                    printf("0. Return\n\n");
+                    printf("   Enter your option: ");
+                    scanf("%d", &selectSorting);
+                    
+                    if ( selectSorting == 1
+                            || selectSorting == 2
+                            || selectSorting == 3){
+                        
+                        int index;
+                        
+                        // Convert option according to array index
+                        switch (selectSorting){
+                            case 1 : index = INDEX_FOR_FIRST_NAME_SORTING; break;
+                            case 2 : index = INDEX_FOR_LAST_NAME_SORTING; break;
+                            case 3 : index = INDEX_FOR_PHONE_NUMBER_SORTING; break;
+                        }
+                        
+                        ContactPtr printContact = linkedListHead[index];
+
+                        while (printContact != NULL){                            
+                            printf("First Name: %s\n", printContact -> data.firstName );
+                            printf("Last Name: %s\n", printContact -> data.lastName );
+                            printf("Phone Number: %s\n\n", printContact -> data.phoneNumber );
+
+                            printContact = printContact -> next[index];
+                        }
+                    } else if ( selectSorting != 0){ // Invalid option
+                        system("@cls||clear");
+                        printf("Invalid Option!\n");
+                        FLUSH;
+                    } else { // Back to main menu
+                        system("@cls||clear");
+                    }
+                }
+
+
+            } else if (select == 8){ // List all contacts
                 printf("Contact List\n");
                 int counter = 1;
                 for(int i = 1; i <= MAX_CONTACTS; i++){
-                    if (contacts[i] != NULL){
+                    if (contactsFullName[i] != NULL){
                         printf("Contact number: %d\n", counter++);
-                        printf("First Name: %s\n", contacts[i] -> data.firstName );
-                        printf("Last Name: %s\n", contacts[i] -> data.lastName );
-                        printf("Phone Number: %s\n\n", contacts[i] -> data.phoneNumber ); 
+                        printf("First Name: %s\n", contactsFullName[i] -> data.firstName );
+                        printf("Last Name: %s\n", contactsFullName[i] -> data.lastName );
+                        printf("Phone Number: %s\n\n", contactsFullName[i] -> data.phoneNumber ); 
 
-                        ContactPtr nextContact = contacts[i] -> next;
+                        ContactPtr nextContact = contactsFullName[i] -> next[INDEX_FOR_FULL_NAME_HASH_TABLE];
 
                         while (nextContact != NULL){
                             printf("Contact number: %d\n", counter++);
@@ -239,36 +362,14 @@ int main() {
                             printf("Last Name: %s\n", nextContact -> data.lastName );
                             printf("Phone Number: %s\n\n", nextContact -> data.phoneNumber );
 
-                            nextContact = nextContact -> next;
+                            nextContact = nextContact -> next[INDEX_FOR_FULL_NAME_HASH_TABLE];
                         }
                     }
                 }
             } else if (select == 9){
-                ContactPtr temp = (ContactPtr) malloc(sizeof(Contact));
+                
+                importSampleFile(contactsFullName, contactsPhoneNumber);
 
-                // Clear contact list
-                for(int i = 1; i <= MAX_CONTACTS; i++){
-                    if (contacts[i] != NULL){
-                        contacts[i] = NULL;
-                    }
-                }
-
-                // Read file
-                FILE *in = fopen("sample.txt", "r");
-
-                // Get name and grade until EOF
-                while (fscanf(in, "%s", temp -> data.firstName) != EOF){
-
-                    fscanf(in, "%s", temp -> data.lastName);
-                    fscanf(in, "%s", temp -> data.phoneNumber);
-                    temp -> next = NULL;
-
-                    int index = getIndex(temp -> data.firstName, temp -> data.lastName);
-
-                    addContact(index, temp, contacts);
-                }
-
-                fclose(in);
             } else if (select == 0){ // Exit program and message
                     printf("Thank you!\n");
                     printf("This program was developed by\n");
@@ -290,284 +391,86 @@ int main() {
     return (0);
 }
 
-// Enter full name and return the index
-int getIndex(char firstName[], char lastName[]){
-    char fullName[101];
-    strcpy(fullName, firstName);
-    strcat(fullName, " ");
-    strcat(fullName, lastName);
-
-    int charIndex = 0;
-    int result = 0;
-    
-    while (fullName[charIndex] != '\0'){
-        // Get char value and multiply by Weight (charIndex + 1)
-        result += (int)fullName[charIndex] * (++charIndex);
-    }
-    
-    return (result % MAX_CONTACTS) + 1;
-}
-
-// Create the contact
-ContactPtr createContact(char firstName[], char lastName[], char phoneNumber[]){
-    ContactPtr contact = (ContactPtr)malloc(sizeof(Contact));
-    strcpy(contact -> data.firstName, firstName);
-    strcpy(contact -> data.lastName, lastName);
-    strcpy(contact -> data.phoneNumber, phoneNumber);
-    contact -> next = NULL;
-    
-    return contact;
-}
-
-// Add contact to contact list
-void addContact(int index, ContactPtr contact, ContactPtr contacts[]){
-    
-    ContactPtr newContact = (ContactPtr) malloc(sizeof(Contact));
-    
-    strcpy(newContact -> data.firstName, contact -> data.firstName);
-    strcpy(newContact -> data.lastName, contact -> data.lastName);
-    strcpy(newContact -> data.phoneNumber, contact -> data.phoneNumber);
-    newContact ->next = contact -> next;
-    
-    if (contacts[index] == NULL){
-        contacts[index] = newContact;              
-    } else { // We have a collision!
+int searchMenu(){
+    int selectSearch = -1;
+                
+    while ( selectSearch != 0){
+        printf("1. Search by name\n");
+        printf("2. Search by phone number\n");
+        printf("0. Return\n\n");
+        printf("   Enter your option: ");
+        scanf("%d", &selectSearch);
         
-        // Flag if a contact is placed in link list
-        int placed = 0;
-        
-        // Head is the first item
-        ContactPtr currentContact = contacts[index];
-        ContactPtr nextContact = currentContact -> next;
-
-        // Place item in Link List
-        while (placed == 0){
-            
-            // Get the string length. We will compare just the same length
-            int currentFirstNameLength = strlen(currentContact -> data.firstName);
-            int currentLastNameLength = strlen(currentContact -> data.lastName);
-
-            int nextFirstNameLength = strlen(currentContact -> data.firstName);
-            int nextLastNameLength = strlen(currentContact -> data.lastName);
-
-            int contactFirstNameLength = strlen(contact -> data.firstName);
-            int contactLastNameLength = strlen(contact -> data.lastName);
-        
-            // Get the lowest length:       
-            int l1 = 0;
-            if (currentFirstNameLength > contactFirstNameLength) {
-                l1 = contactFirstNameLength;
-            } else {
-                l1 = currentFirstNameLength;
-            }
-
-            int l2 = 0;
-            if (currentLastNameLength > contactLastNameLength) {
-                l2 = contactFirstNameLength;
-            } else {
-                l2 = currentLastNameLength;
-            }
-
-            int l3 = 0;
-            if (nextFirstNameLength > contactFirstNameLength) {
-                l3 = contactFirstNameLength;
-            } else {
-                l3 = nextFirstNameLength;
-            }
-
-            int l4 = 0;
-            if (nextLastNameLength> contactLastNameLength) {
-                l4 = contactFirstNameLength;
-            } else {
-                l4 = nextLastNameLength;
-            }
-
-            // Compare with head
-            if (strncmp(contacts[index] -> data.firstName, contact -> data.firstName, l1) > 0){
-
-                if (strncmp(contacts[index] -> data.lastName, contact -> data.lastName, l2) > 0){  
-                    newContact -> next = contacts[index]; 
-                    contacts[index] = newContact;
-                    placed = 1;
-                } else {
-                    newContact -> next = nextContact; 
-                    contacts[index] -> next = newContact;
-                    placed = 1;
-                }
-
-            } else if (nextContact == NULL){ // If there is no next contact
-                currentContact -> next = contact;
-                placed = 1;
-            } else if (strncmp(nextContact -> data.firstName, contact -> data.firstName, l3) > 0) {
-
-                currentContact -> next = newContact;
-                newContact -> next = nextContact;
-                placed = 1;
-
-            } else if (strncmp(nextContact -> data.firstName, contact -> data.firstName, l3) == 0) {
-
-                if (strncmp(nextContact -> data.lastName, contact -> data.lastName, l4) >= 0){
-                    currentContact -> next = newContact;
-                    newContact -> next = nextContact;
-                    placed = 1;
-                } else {
-                    currentContact = nextContact;
-                    nextContact = currentContact -> next;
-                }
-            } else {
-                currentContact = nextContact;
-                nextContact = currentContact -> next;
-            }
-        }
-    }
-}
-
-// Create a link list and print sorted contact
-void sortContacts(ContactPtr contacts[]){
-    int i;
-    
-    // New node
-    ContactPtr contact = NULL;
-    
-    // Link list head;
-    ContactPtr head = NULL;
-        
-    // Create link list
-    for(i = 1; i <= MAX_CONTACTS; i++){
- 
-        if (contacts[i] != 0){
-            // Allocate memory for new node
-            contact = (ContactPtr)malloc(sizeof(Contact));
-            
-            // Create node
-            strcpy(contact -> data.firstName, contacts[i] -> data.firstName);
-            strcpy(contact -> data.lastName, contacts[i] -> data.lastName);
-            strcpy(contact -> data.phoneNumber, contacts[i] -> data.phoneNumber);
-            contact -> next = NULL;
-            
-            if (head == NULL){// Set the new node as head
-                head = contact;
-            } else {
-                head = insertContactIntoLinkedList(head, contact);
-            }
-            
-            // Create node for link list
-            ContactPtr nextContact = contacts[i] -> next;
-
-            while (nextContact != NULL){
-                // Allocate memory for new node
-                contact = (ContactPtr)malloc(sizeof(Contact));
-
-                strcpy(contact -> data.firstName, nextContact -> data.firstName);
-                strcpy(contact -> data.lastName, nextContact -> data.lastName);
-                strcpy(contact -> data.phoneNumber, nextContact -> data.phoneNumber); 
-                contact -> next = NULL;
-
-                head = insertContactIntoLinkedList(head, contact);
-
-                nextContact = nextContact -> next;
-            }
-       }
-    }
-    
-    ContactPtr contactNext = head;
-
-    // Print link list
-    while (contactNext != NULL){
-        printf("First Name: %s \n", contactNext -> data.firstName);
-        printf("Last Name: %s \n", contactNext -> data.lastName);
-        printf("Phone Number: %s \n\n", contactNext -> data.phoneNumber);
-        
-        contactNext = contactNext -> next;
-    }
-}
-// Insert item into Linked list
-ContactPtr insertContactIntoLinkedList (ContactPtr head, ContactPtr contact){
-    // Flag if a contact is placed in link list
-    int placed = 0;
-
-    ContactPtr currentContact = head;
-    ContactPtr nextContact = currentContact -> next;
-    
-    // Place item in Link List
-    while (placed == 0){
-        
-        // Get the string length. We will compare just the same length
-        int currentFirstNameLength = strlen(currentContact -> data.firstName);
-        int currentLastNameLength = strlen(currentContact -> data.lastName);
-
-        int nextFirstNameLength = strlen(currentContact -> data.firstName);
-        int nextLastNameLength = strlen(currentContact -> data.lastName);
-        
-        int contactFirstNameLength = strlen(contact -> data.firstName);
-        int contactLastNameLength = strlen(contact -> data.lastName);
-        
-        // Get the lowest length:       
-        int l1 = 0;
-        if (currentFirstNameLength > contactFirstNameLength) {
-            l1 = contactFirstNameLength;
-        } else {
-            l1 = currentFirstNameLength;
-        }
-        
-        int l2 = 0;
-        if (currentLastNameLength > contactLastNameLength) {
-            l2 = contactFirstNameLength;
-        } else {
-            l2 = currentLastNameLength;
-        }
-        
-        int l3 = 0;
-        if (nextFirstNameLength > contactFirstNameLength) {
-            l3 = contactFirstNameLength;
-        } else {
-            l3 = nextFirstNameLength;
-        }
-        
-        int l4 = 0;
-        if (nextLastNameLength> contactLastNameLength) {
-            l4 = contactFirstNameLength;
-        } else {
-            l4 = nextLastNameLength;
-        }
-        
-        // Compare with head
-        if (strncmp(head -> data.firstName, contact -> data.firstName, l1) > 0){
-            
-            if (strncmp(head -> data.lastName, contact -> data.lastName, l2) > 0){
-                contact -> next = head; 
-                head = contact;
-                placed = 1;
-            } else {
-                contact -> next = nextContact; 
-                head -> next = contact;
-                placed = 1;
-            }
-
-        } else if (nextContact == NULL){ // If there is no next contact
-            currentContact -> next = contact;
-            placed = 1;
-        } else if (strncmp(nextContact -> data.firstName, contact -> data.firstName, l3) > 0) {
-           
-            currentContact -> next = contact;
-            contact -> next = nextContact;
-            placed = 1;
-            
-        } else if (strncmp(nextContact -> data.firstName, contact -> data.firstName, l3) == 0) {
-
-            if (strncmp(nextContact -> data.lastName, contact -> data.lastName, l4) > 0){
-                currentContact -> next = contact;
-                contact -> next = nextContact;
-                placed = 1;
-            } else {
-                currentContact = nextContact;
-                nextContact = currentContact -> next;
-            }
-        } else {
-            currentContact = nextContact;
-            nextContact = currentContact -> next;
+        if (selectSearch == 1 || selectSearch == 2){
+            return selectSearch;
+        } else if ( selectSearch != 0){ // Invalid option
+                system("@cls||clear");
+                printf("Invalid Option!\n");
+                FLUSH;
+        } else { // Back to main menu
+            system("@cls||clear");
+            return selectSearch;
         }
     }
     
-    return head;
+    return selectSearch;
 }
+
+ContactPtr searchContact (int selectSearch, ContactPtr contactsFullName[], ContactPtr contactsPhoneNumber[]){
+
+    ContactPtr contact;
+    char phoneNumber[11];
+
+    if (selectSearch == 1) {
+        ContactPtr newContact = createContact();
+
+        contact = getContactFullName(newContact, contactsFullName);
+
+        return contact;
+    } else if (selectSearch == 2){
+
+        contact = (ContactPtr)malloc(sizeof(Contact));
+
+        // Get contact number;
+        printf("Enter phone number: ");
+        scanf("%s", contact -> data.phoneNumber);
+
+        contact = getContactPhoneNumber(contact, contactsPhoneNumber);
+
+        return contact;
+    }
+}
+void importSampleFile(ContactPtr contactsFullName[], ContactPtr contactsPhoneNumber[]){
+
+    char firstName[50];
+
+    // Read file
+    FILE *in = fopen("sample.txt", "r");
+
+    // Get name and grade until EOF
+    while (fscanf(in, "%s", firstName) != EOF){
+        ContactPtr temp = (ContactPtr) malloc(sizeof(Contact));
+            
+        strcpy(temp -> data.firstName, firstName);
+        fscanf(in, "%s", temp -> data.lastName);
+        fscanf(in, "%s", temp -> data.phoneNumber);
+        
+        for (int i = 0; i < NUMBER_OF_LINKED_LIST; i++){
+            temp -> next[i] = NULL;
+        }
+        
+        // Add contact to Full Name Hash Table list
+        addContactFullName(temp, contactsFullName);
+        
+        // Add contact to Phone Number Hash Table
+        addContactPhoneNumber(temp, contactsPhoneNumber);
+                    
+        // Add to sorted linked list
+        addSortedLinkedList(temp);
+    }
+
+    fclose(in);    
+}
+
+// TODO Validation
+// TODO SORTING By phone number and By Name

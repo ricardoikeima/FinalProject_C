@@ -4,6 +4,8 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <itemPath>hashContactList.h</itemPath>
+      <itemPath>linkedListContactList.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
                    displayName="Resource Files"
@@ -40,6 +42,10 @@
       </compileType>
       <item path="contacts.txt" ex="false" tool="3" flavor2="0">
       </item>
+      <item path="hashContactList.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="linkedListContactList.h" ex="false" tool="3" flavor2="0">
+      </item>
       <item path="main.c" ex="false" tool="0" flavor2="0">
       </item>
       <item path="sample.txt" ex="false" tool="3" flavor2="0">
@@ -66,6 +72,10 @@
         </asmTool>
       </compileType>
       <item path="contacts.txt" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="hashContactList.h" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="linkedListContactList.h" ex="false" tool="3" flavor2="0">
       </item>
       <item path="main.c" ex="false" tool="0" flavor2="0">
       </item>
